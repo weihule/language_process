@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from utils import mkdirs
 
 
-def dis_run():
+def dis_run(dis_path, pre_path, save_root):
 
     # 定义起始和结束日期  
     start_date = '2022-11-01'  
@@ -19,16 +19,12 @@ def dis_run():
     
     # 使用date_range()函数生成时间序列  
     time_series = pd.date_range(start=start_date, end=end_date, freq=interval)[::-1] 
-    
-    save_root = "./outs/分布式12个区域未来12个月发电量预测"
-    mkdirs(save_root)
 
     month_series = [11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     model_xgb = xgb.XGBRegressor()
     
-    dis_path = r"D:\Desktop\智慧能源专项赛-赛题二数据\分布式历史发电量-202204-202210数据.xlsx"
-    pre_path = r"D:\Desktop\智慧能源专项赛-赛题二数据\天气预报数据\分布式发电量预测天气预报数据-22年11月-23年10月\FBS-SSRD-20221101-20231031.csv"
+
 
     data = pd.read_excel(dis_path).iloc[:, :5]
     predict_data = pd.read_csv(pre_path).iloc[:, 1:]
@@ -81,8 +77,9 @@ def dis_run():
             dic["ENERGY"].append(energy_sum)
 
         pd.DataFrame(dic).to_excel(out_path, index=False)
+        print(f"{out_file} save success")
         
-        break
+        # break
 
 
 def val(model: xgb.XGBRegressor, X_test, y_test):
@@ -102,13 +99,16 @@ def predict(model, predict_sub_data):
     data_predict = predict_sub_data[["WEATHER1_IR", "WEATHER2_IR"]]
     
     predict_pred = model.predict(data_predict)
-    print(data_predict.shape)
 
     return predict_pred.tolist()
 
 
 if __name__ == "__main__":
-    dis_run()
+    dis_path_ = r"D:\Desktop\智慧能源专项赛-赛题二数据\分布式历史发电量-202204-202210数据.xlsx"
+    pre_path_ = r"D:\Desktop\智慧能源专项赛-赛题二数据\天气预报数据\分布式发电量预测天气预报数据-22年11月-23年10月\FBS-SSRD-20221101-20231031.csv"
+    save_root_ = "./outs/分布式12个区域未来12个月发电量预测"
+    mkdirs(save_root_)
+    dis_run(dis_path_, pre_path_, save_root_)
 
 
 
