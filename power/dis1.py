@@ -95,7 +95,7 @@ if __name__ == "__main__":
     distributed_root_ = "D:\Desktop\智慧能源专项赛-赛题二数据\分布式历史数据"
     predict_root_ = "D:\Desktop\智慧能源专项赛-赛题二数据\天气预报数据\分布式功率预测天气预报数据-23年10月1日-10月7日"
     save_root_ = "./outs"
-    dis_run(distributed_root, predict_root, save_root)
+    dis_run(distributed_root_, predict_root_, save_root_)
 
 
 

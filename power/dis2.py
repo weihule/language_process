@@ -80,7 +80,7 @@ def dis_run():
             energy_sum = int(energy_sum)
             dic["ENERGY"].append(energy_sum)
 
-        # df.to_excel(out_path, index=False)
+        pd.DataFrame(dic).to_excel(out_path, index=False)
         
         break
 
