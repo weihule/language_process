@@ -46,7 +46,9 @@ def dis_run(dis_path, pre_path, save_root, save_weight_root):
         power = sub_dis1["ENERGY（kW·h）"]
         features = sub_dis1[["WEATHER1_IR", "WEATHER2_IR"]]
 
-        X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
+        X_train, y_train = features, power
+
+        # X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
 
         # 开始训练模型
         model_xgb.fit(X_train, y_train)
@@ -81,7 +83,7 @@ def dis_run(dis_path, pre_path, save_root, save_weight_root):
             energy_sum = int(energy_sum)
             dic["ENERGY"].append(energy_sum)
 
-        pd.DataFrame(dic).to_excel(out_path, index=False)
+        # pd.DataFrame(dic).to_excel(out_path, index=False)
         print(f"{out_file} save success")
         
         # break
@@ -167,10 +169,10 @@ if __name__ == "__main__":
     dis_path_ = r"D:\Desktop\智慧能源专项赛-赛题二数据\分布式历史发电量-202204-202210数据.xlsx"
     pre_path_ = r"D:\Desktop\智慧能源专项赛-赛题二数据\天气预报数据\分布式发电量预测天气预报数据-22年11月-23年10月\FBS-SSRD-20221101-20231031.csv"
     save_root_ = "./outs/分布式12个区域未来12个月发电量预测"
-    save_weight_root_ = "./weights/dis2"
+    save_weight_root_ = "./new_weights/dis2"
     mkdirs(save_root_)
-    # dis_run(dis_path_, pre_path_, save_root_, save_weight_root_)
-    all_predict(pre_path_, save_root_, save_weight_root_)
+    dis_run(dis_path_, pre_path_, save_root_, save_weight_root_)
+    # all_predict(pre_path_, save_root_, save_weight_root_)
 
 
 

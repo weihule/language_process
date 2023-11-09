@@ -57,7 +57,8 @@ def dis_run(distributed_root, predict_root, save_root, save_weight_root):
         # 划分训练集和验证集
         features = data[filter_features]
         power = data["POWER"]
-        X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
+        X_train, y_train = features, power
+        # X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
 
         # 开始训练模型
         model_xgb.fit(X_train, y_train)
@@ -75,7 +76,7 @@ def dis_run(distributed_root, predict_root, save_root, save_weight_root):
         })
         df.loc[mask, 'POWER'] = 0
 
-        df.to_excel(out_path, index=False)
+        # df.to_excel(out_path, index=False)
         print(f"{out_file} save success")
         
         # break
@@ -147,12 +148,12 @@ if __name__ == "__main__":
     predict_root_ = "D:\Desktop\智慧能源专项赛-赛题二数据\天气预报数据\分布式功率预测天气预报数据-23年10月1日-10月7日"
     save_root_ = "./outs/分布式12个区域未来7天功率预测"
     # save_root_ = "./outs"
-    save_weight_root_ = "./weights/dis1"
+    save_weight_root_ = "./new_weights/dis1"
 
     mkdirs(save_root_)
-    # dis_run(distributed_root_, predict_root_, save_root_, save_weight_root_)
+    dis_run(distributed_root_, predict_root_, save_root_, save_weight_root_)
 
-    all_predict(predict_root_, save_root_, save_weight_root_)
+    # all_predict(predict_root_, save_root_, save_weight_root_)
 
 
 
