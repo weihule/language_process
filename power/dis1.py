@@ -32,7 +32,8 @@ def dis_run(distributed_root, predict_root, save_root, save_weight_root):
 
         dis_path = Path(distributed_root) / dis_file
         pre_path = Path(predict_root) / pre_file
-        out_path = Path(save_root) / out_file
+        # out_path = Path(save_root) / out_file
+        out_path = Path("./power/all") / ("FBS_" + str(i) + ".csv")
 
         data = pd.read_csv(str(dis_path))
         data['TIMESTAMP'] = pd.to_datetime(data['TIMESTAMP'])
@@ -52,32 +53,45 @@ def dis_run(distributed_root, predict_root, save_root, save_weight_root):
         # 取相关性大于0.5的特征(排除自身)
         # filter_features = target_correlation[target_correlation > 0.5].index.tolist()[1:]
         # print(filter_features)
-        filter_features = ['WEATHER2_IR', 'WEATHER1_IR', 'WEATHER2_TMP', 'WEATHER1_TMP']
+        filter_features = ["WEATHER1_TMP", "WEATHER1_PRES", "WEATHER1_RAINFALL", "WEATHER1_TCC",
+                           "WEATHER1_IR", "WEATHER1_WS", "WEATHER2_TMP", "WEATHER2_PRES",
+                           "WEATHER2_RAINFALL", "WEATHER2_TCC", "WEATHER2_IR", "WEATHER2_WS"]
 
         # 划分训练集和验证集
         features = data[filter_features]
         power = data["POWER"]
-        X_train, y_train = features, power
-        # X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
+        # X_train, y_train = features, power
+        X_train, X_test, y_train, y_test = train_test_split(features, power, test_size=0.2, shuffle=False)
 
         # 开始训练模型
         model_xgb.fit(X_train, y_train)
-        # val(model_xgb, X_test, y_test)
+
+        # 把预测结果和实际结果保存到csv中
+        predict_pred = model_xgb.predict(X_test)
+        df = pd.DataFrame({
+            "real": y_test,
+            "predict": predict_pred
+        })
+        df.loc[df['real'] == 0, 'predict'] = 0
+
+        df.to_excel(out_path, index=False)
 
         # 保存模型到文件
-        filename = Path(save_weight_root) / out_weight
-        pickle.dump(model_xgb, open(filename, 'wb'))
+        # filename = Path(save_weight_root) / out_weight
+        # pickle.dump(model_xgb, open(filename, 'wb'))
 
-        predict_pred = predict(model_xgb, str(pre_path), filter_features)
+        # predict_pred = predict(model_xgb, str(pre_path), filter_features)
         
-        df = pd.DataFrame({
-            "TIMESTAMP": time_series,
-            "POWER": predict_pred
-        })
-        df.loc[mask, 'POWER'] = 0
+        # df = pd.DataFrame({
+        #     "TIMESTAMP": time_series,
+        #     "POWER": predict_pred
+        # })
+
+        # # 符合时间段的数据强制归0
+        # df.loc[mask, 'POWER'] = 0
 
         # df.to_excel(out_path, index=False)
-        print(f"{out_file} save success")
+        # print(f"{out_file} save success")
         
         # break
 

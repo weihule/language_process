@@ -2,5 +2,9 @@
 */outs_old/
 */weights/
 */new_weights/
+*/天气预报数据/
+*/data/
+*/__pycache__/
+
 
 

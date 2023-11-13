@@ -52,7 +52,6 @@ def dis_run(dis_path, pre_path, save_root, save_weight_root):
 
         # 开始训练模型
         model_xgb.fit(X_train, y_train)
-        # val(model_xgb, X_test, y_test)
 
         # 保存模型到文件
         filename = Path(save_weight_root) / out_weight
