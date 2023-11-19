@@ -1,7 +1,17 @@
 import numpy as np
 from pathlib import Path
+import torch
+import torch.nn.functional as F
+from torch.nn.utils.rnn import pad_sequence
+
 
 # https://blog.csdn.net/rongsenmeng2835/article/details/107437891
+
+__all__ = [
+    "read_vocab",
+    "read_category",
+    "process_file"
+]
 
 
 # 读取词汇表, 将其转化为ID
@@ -37,7 +47,21 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
         except Exception as e:
             pass
     data_id, label_id = [], []
-    print(len(contents[0]), labels[0])
+    for i in range(len(contents)):
+        # 将每句话id化
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
+        # 每句话对应的id添加至对应列表
+        label_id.append(cat_to_id[labels[i]])
+
+    data_tensors = [torch.tensor(row) for row in data_id]
+    label_tensor = torch.tensor(label_id)
+    padded_data = pad_sequence(data_tensors,
+                               batch_first=True,
+                               padding_value=0.0)
+    padded_data = padded_data[:, :600]
+    padded_label = F.one_hot(label_tensor, num_classes=len(cat_to_id))
+
+    return padded_data, padded_label
 
 
 def run():
@@ -51,5 +75,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-
