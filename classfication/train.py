@@ -137,32 +137,24 @@ def main():
                                 cat_to_id=cat_to_id,
                                 max_length=600)
 
-    x_train, y_train = torch.LongTensor(x_train),torch.Tensor(y_train)
-    x_val, y_val = torch.LongTensor(x_val),torch.Tensor(y_val)
+    x_train, y_train = torch.LongTensor(x_train), torch.Tensor(y_train)
+    x_val, y_val = torch.LongTensor(x_val), torch.Tensor(y_val)
 
     # 利用 TensorDataset 直接将x_train, y_train整合成Dataset结构
     train_dataset = TensorDataset(x_train, y_train)
     train_loader = DataLoader(
         dataset=train_dataset,
-        batch_size=cfgs["batch_size"],      
-        shuffle=True,         
-        num_workers=2,        
+        batch_size=cfgs["batch_size"],
+        shuffle=True,
+        num_workers=2,
     )
 
     val_dataset = TensorDataset(x_val, y_val)
     val_loader = DataLoader(
         dataset=val_dataset,
-        batch_size=cfgs["batch_size"],      
-        shuffle=False,         
-        num_workers=2,        
-    )
-
-    test_dataset = TensorDataset(x_test, y_test)
-    test_loader = DataLoader(
-        dataset=test_dataset,
-        batch_size=cfgs["batch_size"],      
-        shuffle=False,         
-        num_workers=2,        
+        batch_size=cfgs["batch_size"],
+        shuffle=False,
+        num_workers=2,
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -171,7 +163,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
 
-    optimizer = torch.optim.Adam(model.parameters(),lr= cfgs["lr"])
+    optimizer = torch.optim.Adam(model.parameters(), lr=cfgs["lr"])
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                            T_max=cfgs["epoch"])
@@ -180,7 +172,7 @@ def main():
     start_epoch = 1
 
     start_time = time.time()
-    for epoch in range(start_epoch, cfgs["epoch"]+1):
+    for epoch in range(start_epoch, cfgs["epoch"] + 1):
         mean_loss = train(cfgs=cfgs,
                           logger=logger,
                           model=model,
