@@ -1,1 +1,1 @@
-from .textrnn import TextRNN
+from .textrnn import *

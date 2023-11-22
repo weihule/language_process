@@ -59,9 +59,8 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
                                batch_first=True,
                                padding_value=0.0)
     padded_data = padded_data[:, :600]
-    padded_label = F.one_hot(label_tensor, num_classes=len(cat_to_id))
 
-    return padded_data, padded_label
+    return padded_data, label_tensor
 
 
 def run():

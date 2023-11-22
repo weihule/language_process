@@ -4,26 +4,24 @@ from pathlib import Path
 from loguru import logger
 
 import torch
-import torchvision
 import torch.nn as nn
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 
 from datasets import process_file, read_vocab, read_category
-from models import TextRNN
+from models import TextRNN, TextRNN2
 from utils.util import mkdirs
 
-
+# r"D:\workspace\data\nlp_training_data"
 cfgs = {
-    "BATCH_SIZE": 32,
-    "EPOCH": 100,
-    "LR": 0.001,
-    "model_name": "TextRNN",
-    "save_root": r"D:\workspace\data\nlp_training_data",
-    "print_interval": 20,
-    "save_interval": 1
+    "batch_size": 64,
+    "epoch": 100,
+    "lr": 0.001,
+    "model_name": "TextRNN2",
+    "save_root": "/home/8TDISK/weihule/data/nlp_training_data",
+    "print_interval": 80,
+    "save_interval": 4,
+    "mode": "1.65"
 }
 
 
@@ -36,6 +34,7 @@ def train(cfgs, logger, model, train_loader, criterion, optimizer, scheduler, ep
     for ds in tqdm(train_loader):
         inputs, labels = ds
         inputs, labels = inputs.to(device), labels.to(device)
+        # labels = F.one_hot(labels, num_classes=model.numclasses)
         # 梯度清零
         optimizer.zero_grad()
 
@@ -63,8 +62,9 @@ def train(cfgs, logger, model, train_loader, criterion, optimizer, scheduler, ep
 
 def evaluate(model, val_dataset_len, val_loader, device):
     correct = 0.
-    with torch.no_grad(), model.eval():
-        model.to(device)
+    model.eval()
+    model.to(device)
+    with torch.no_grad():
         for ds in tqdm(val_loader):
             inputs, labels = ds
             inputs, labels = inputs.to(device), labels.to(device)
@@ -82,16 +82,39 @@ def init_dir(cfgs):
     save_root = cfgs["save_root"]
     mkdirs(save_root)
 
-    model_dir = Path(save_root) / cfgs["mopdel_name"]
+    model_dir = Path(save_root) / cfgs["model_name"]
     mkdirs(model_dir)
 
     return model_dir
 
 
+# 创建一个自定义的 TextIOWrapper 对象
+class TqdmStream:
+    def write(self, msg):
+        tqdm.write(msg)
+
+
 def main():
+    if cfgs["mode"] == "local":
+        vocab_file = r'D:\workspace\data\dl\cnews\cnews.vocab.txt'
+        train_file = r"D:\workspace\data\dl\cnews\cnews.train.txt"
+        val_file = r"D:\workspace\data\dl\cnews\cnews.val.txt"
+        test_file = r"D:\workspace\data\dl\cnews\cnews.test.txt"
+    elif cfgs["mode"] == "1.65":
+        vocab_file = "/home/8TDISK/weihule/data/cnews/cnews.vocab.txt"
+        train_file = "/home/8TDISK/weihule/data/cnews/cnews.train.txt"
+        val_file = "/home/8TDISK/weihule/data/cnews/cnews.val.txt"
+        test_file = "/home/8TDISK/weihule/data/cnews/cnews.test.txt"
+    else:
+        vocab_file = ""
+        train_file = ""
+        val_file = ""
+        test_file = ""
+
     model_dir: Path = init_dir(cfgs)
 
     model_name = cfgs["model_name"]
+
     # 配置日志输出到文件
     logger.add(model_dir / f"{model_name}.log", rotation="500 MB", level="INFO")
 
@@ -99,35 +122,29 @@ def main():
     categories, cat_to_id = read_category()
 
     # 获取训练文本中所有出现过的字及其所对应的id
-    words, word_to_id = read_vocab(r'D:\workspace\data\dl\cnews\cnews.vocab.txt')
+    words, word_to_id = read_vocab(vocab_file)
 
     # 获取字数,5000字
     vocab_size = len(words)
 
-    x_train, y_train = process_file(filename=r"D:\workspace\data\dl\cnews\cnews.train.txt",
+    x_train, y_train = process_file(filename=train_file,
                                     word_to_id=word_to_id,
                                     cat_to_id=cat_to_id,
                                     max_length=600)
 
-    x_val, y_val = process_file(filename=r"D:\workspace\data\dl\cnews\cnews.val.txt",
+    x_val, y_val = process_file(filename=val_file,
                                 word_to_id=word_to_id,
                                 cat_to_id=cat_to_id,
                                 max_length=600)
 
-    x_test, y_test = process_file(filename=r"D:\workspace\data\dl\cnews\cnews.test.txt",
-                                  word_to_id=word_to_id,
-                                  cat_to_id=cat_to_id,
-                                  max_length=600)
-
-    x_train,y_train = torch.LongTensor(x_train),torch.Tensor(y_train)
-    x_val,y_val = torch.LongTensor(x_val),torch.Tensor(y_val)
-    x_test,y_test = torch.LongTensor(x_test),torch.Tensor(y_test)
+    x_train, y_train = torch.LongTensor(x_train),torch.Tensor(y_train)
+    x_val, y_val = torch.LongTensor(x_val),torch.Tensor(y_val)
 
     # 利用 TensorDataset 直接将x_train, y_train整合成Dataset结构
     train_dataset = TensorDataset(x_train, y_train)
     train_loader = DataLoader(
         dataset=train_dataset,
-        batch_size=cfgs["BATCH_SIZE"],      
+        batch_size=cfgs["batch_size"],      
         shuffle=True,         
         num_workers=2,        
     )
@@ -135,7 +152,7 @@ def main():
     val_dataset = TensorDataset(x_val, y_val)
     val_loader = DataLoader(
         dataset=val_dataset,
-        batch_size=cfgs["BATCH_SIZE"],      
+        batch_size=cfgs["batch_size"],      
         shuffle=False,         
         num_workers=2,        
     )
@@ -143,27 +160,27 @@ def main():
     test_dataset = TensorDataset(x_test, y_test)
     test_loader = DataLoader(
         dataset=test_dataset,
-        batch_size=cfgs["BATCH_SIZE"],      
+        batch_size=cfgs["batch_size"],      
         shuffle=False,         
         num_workers=2,        
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = TextRNN(numclasses=10)
+    model = eval(model_name)(num_classes=10, vocab_size=vocab_size)
     model = model.to(device)
 
-    criterion = nn.MultiLabelSoftMarginLoss()
+    criterion = nn.CrossEntropyLoss()
 
-    optimizer = torch.optim.Adam(model.parameters(),lr= cfgs["LR"])
+    optimizer = torch.optim.Adam(model.parameters(),lr= cfgs["lr"])
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 
-                                                           T_max=cfgs["epochs"])
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
+                                                           T_max=cfgs["epoch"])
 
     best_acc = 0.
     start_epoch = 1
 
     start_time = time.time()
-    for epoch in range(start_epoch, cfgs["EPOCH"]+1):
+    for epoch in range(start_epoch, cfgs["epoch"]+1):
         mean_loss = train(cfgs=cfgs,
                           logger=logger,
                           model=model,
@@ -174,11 +191,12 @@ def main():
                           epoch=epoch,
                           device=device)
         logger.info(f"train: epoch: {epoch}, loss: {mean_loss:.3f}")
-        if epoch % cfgs["save_interval"] == 0 or epoch == cfgs["epochs"]:
+        if epoch % cfgs["save_interval"] == 0 or epoch == cfgs["epoch"]:
             val_acc = evaluate(model=model,
                                val_dataset_len=len(val_dataset),
                                val_loader=val_loader,
                                device=device)
+            logger.info(f"epoch = {epoch}, val_acc = {val_acc}")
             if val_acc > best_acc:
                 # 先删除旧的历史权重
                 for i in model_dir.glob(f"{model_name}*.pth"):
@@ -195,8 +213,8 @@ def main():
                     'optimizer_state_dict': optimizer.state_dict(),
                     'scheduler_state_dict': scheduler.state_dict()
                 }, str(model_dir / "resume.pth"))
-        train_time = (time.time() - start_time) / 60
-        logger.info(f'finish training, total training time: {train_time:.2f} mins')
+    train_time = (time.time() - start_time) / 60
+    logger.info(f'finish training, total training time: {train_time:.2f} mins')
 
 
 if __name__ == "__main__":
