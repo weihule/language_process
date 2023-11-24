@@ -99,17 +99,14 @@ def main():
         vocab_file = r'D:\workspace\data\dl\cnews\cnews.vocab.txt'
         train_file = r"D:\workspace\data\dl\cnews\cnews.train.txt"
         val_file = r"D:\workspace\data\dl\cnews\cnews.val.txt"
-        test_file = r"D:\workspace\data\dl\cnews\cnews.test.txt"
     elif cfgs["mode"] == "1.65":
         vocab_file = "/home/8TDISK/weihule/data/cnews/cnews.vocab.txt"
         train_file = "/home/8TDISK/weihule/data/cnews/cnews.train.txt"
         val_file = "/home/8TDISK/weihule/data/cnews/cnews.val.txt"
-        test_file = "/home/8TDISK/weihule/data/cnews/cnews.test.txt"
     else:
         vocab_file = ""
         train_file = ""
         val_file = ""
-        test_file = ""
 
     model_dir: Path = init_dir(cfgs)
 
@@ -211,3 +208,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

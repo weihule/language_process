@@ -42,7 +42,7 @@ class TextRNN(nn.Module):
 
 # 循环神经网络 (many-to-one)
 class TextRNN2(nn.Module):
-    def __init__(self, num_classes, vocab_size):
+    def __init__(self, num_classes, vocab_size, bidirectional=True):
         super(TextRNN2, self).__init__()
         self.num_classes = num_classes
         self.vocab_size = vocab_size
@@ -50,7 +50,7 @@ class TextRNN2(nn.Module):
         embedding_dim = 128
         self.hidden_size = 64
         self.layer_num = 2
-        self.bidirectional = True
+        self.bidirectional = bidirectional
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
 
@@ -63,8 +63,8 @@ class TextRNN2(nn.Module):
                                                                                                     num_classes)
 
     def forward(self, x):
-        # 输入x的维度为(batch_size, max_len), max_len可以通过torchtext设置或自动获取为训练样本的最大长度
-        x = self.embedding(x)  # 经过embedding,x的维度为(batch_size, time_step, input_size=embedding_dim)
+        # x: [batch_size, seq_length] -> [batch_size, seq_length, embedding_dim]
+        x = self.embedding(x)
 
         # 隐层初始化
         # h0维度为(num_layers*direction_num, batch_size, hidden_size)
@@ -87,11 +87,27 @@ class TextRNN2(nn.Module):
 
 
 if __name__ == "__main__":
-    # inputs = torch.tensor([[0, 1, 2], [1, 0, 2]])
-    # embedding = nn.Embedding(3, 3)
-    # outputs = embedding(inputs)
-
-    model = TextRNN2(num_classes=10)
-    inputs = torch.randint(low=0, high=200, size=(32, 600))
-    outputs = model(inputs)
+    inputs = torch.randint(low=0, high=10, size=(3, 10))
+    vcab_size = 15
+    embedding_dim = 6
+    embedding = nn.Embedding(num_embeddings=vcab_size, embedding_dim=embedding_dim)
+    outputs = embedding(inputs)
     print(outputs.shape)
+
+    hidden_dim = 4
+    num_layers = 2
+    lstm = nn.LSTM(input_size=embedding_dim, 
+                   hidden_size=hidden_dim, 
+                   num_layers=num_layers,
+                   bidirectional=True)
+    outputs, (hn, cn) = lstm(outputs)
+    print(outputs.shape)
+
+    arr = torch.randn(size=(2, 10, 6))
+    print(arr)
+    print(arr[:, -1, :], arr[:, -1, :].shape)
+
+    # model = TextRNN2(num_classes=10)
+    # inputs = torch.randint(low=0, high=200, size=(32, 600))
+    # outputs = model(inputs)
+    # print(outputs.shape)
