@@ -104,7 +104,7 @@ if __name__ == "__main__":
     print(outputs.shape)
 
     arr = torch.randn(size=(2, 10, 6))
-    print(arr)
+    # print(arr)
     print(arr[:, -1, :], arr[:, -1, :].shape)
 
     # model = TextRNN2(num_classes=10)
