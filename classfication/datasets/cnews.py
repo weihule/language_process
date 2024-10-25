@@ -61,7 +61,7 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
     padded_data = padded_data[:, :600]
 
     return padded_data, label_tensor
-
+ 
 
 def run():
     w, ws = read_vocab(r"D:\workspace\data\dl\cnews\cnews.vocab.txt")

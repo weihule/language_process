@@ -113,7 +113,7 @@ def main():
     model_name = cfgs["model_name"]
 
     # 配置日志输出到文件
-    logger.add(model_dir / f"{model_name}.log", rotation="500 MB", level="INFO")
+    logger.add(model_dir / f"{model_name}.log", rotation="50 MB", level="INFO")
 
     # 获取文本的类别及其对应id的字典
     categories, cat_to_id = read_category()
